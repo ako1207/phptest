@@ -1,62 +1,50 @@
-{\rtf1\ansi\ansicpg932\cocoartf1504\cocoasubrtf830
-{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset128 HiraginoSans-W3;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww28600\viewh18000\viewkind0
-\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+//Tokenを生成
+$bytes=openssl_random_pseudo_bytes(16);
+$token=bin2hex($bytes);
 
-\f0\fs24 \cf0 //Token
-\f1 \'82\'f0\'90\'b6\'90\'ac
-\f0 \
-$bytes=openssl_random_pseudo_bytes(16);\
-$token=bin2hex($bytes);\
-\
-//
-\f1 \'83\'47\'83\'58\'83\'50\'81\'5b\'83\'76\
-$myname=htmlspecialchars($_POST['name'],ENT_QUOTES,'UTF-8');\
-\
-//\'83\'74\'83\'40\'83\'43\'83\'8b\'93\'c7\'82\'dd\'8d\'9e\'82\'dd\
-CONST STORE_FILE_PATH = './ranking.json';\
-$ranking=json_decode(file_get_contents(STORE_FILE_PATH,true));\
-\
-\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
-\cf0 //\'83\'74\'83\'40\'83\'43\'83\'8b\'8f\'91\'82\'ab\'8f\'6f\'82\'b5\
-\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
-\cf0 file_put_contents(STORE_FILE_PATH, json_encode($ranking));\
-\
-//DB\'8c\'6e\
-$dsn = 'mysql:host=localhost;dbname=schoo;charset=utf8;';\
-		$user = 'root';\
-		$password = '';\
-\
-		try \{\
-			//\'83\'43\'83\'93\'83\'58\'83\'5e\'83\'93\'83\'58\'82\'f0\'8b\'4e\'93\'ae\'82\'b5\'81\'41\'83\'66\'81\'5b\'83\'5e\'83\'78\'81\'5b\'83\'58\'83\'6e\'83\'93\'83\'68\'83\'89\'82\'c9\'91\'e3\'93\'fc\
-			$dbh=new PDO($dsn,$user,$password);\
-			//\'83\'47\'83\'89\'81\'5b\'82\'cc\'8f\'ea\'8d\'87Exception\'82\'f0\'82\'be\'82\'b7\
-			$dbh->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);\
-\
-			//\'83\'67\'83\'89\'83\'93\'83\'55\'83\'4e\'83\'56\'83\'87\'83\'93\'83\'58\'83\'5e\'81\'5b\'83\'67\
-			$dbh->beginTransaction();\
-\
-\
-			//SQL\'8e\'c0\'8d\'73\
-			$stmt=$dbh->prepare("insert into user(username,email) values(?,?)");\
-			$name="\'8d\'b2\'93\'a1";\
-			$email="sato@mail.com";\
-			/*\
-			//bind\'82\'b5\'82\'c8\'82\'a2\'8f\'ea\'8d\'87\
-			$stmt->execute([$name,$email]);\
-			*/\
-\
-			//bind\'8e\'9e\
-			$stmt->bindParam(1,$name,PDO::PARAM_STR);\
-			$stmt->bindParam(2,$email,PDO::PARAM_STR);\
-			$stmt->execute();\
-			echo "\'8a\'ae\'97\'b9";\
-			$dbh->commit();\
-		\} catch (Exception $e) \{\
-			//\'97\'e1\'8a\'4f\'94\'ad\'90\'b6\'8e\'9e\
-			echo 'Connection failed:'.$e->getMessage();\
-			$dbh->rollback();\
-			exit();\
-		\}}
+//エスケープ
+$myname=htmlspecialchars($_POST['name'],ENT_QUOTES,'UTF-8');
+
+//ファイル読み込み
+CONST STORE_FILE_PATH = './ranking.json';
+$ranking=json_decode(file_get_contents(STORE_FILE_PATH,true));
+
+//ファイル書き出し
+file_put_contents(STORE_FILE_PATH, json_encode($ranking));
+
+//DB系
+$dsn = 'mysql:host=localhost;dbname=schoo;charset=utf8;';
+		$user = 'root';
+		$password = '';
+
+		try {
+			//インスタンスを起動し、データベースハンドラに代入
+			$dbh=new PDO($dsn,$user,$password);
+			//エラーの場合Exceptionをだす
+			$dbh->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+
+			//トランザクションスタート
+			$dbh->beginTransaction();
+
+
+			//SQL実行
+			$stmt=$dbh->prepare("insert into user(username,email) values(?,?)");
+			$name="佐藤";
+			$email="sato@mail.com";
+			/*
+			//bindしない場合
+			$stmt->execute([$name,$email]);
+			*/
+
+			//bind時
+			$stmt->bindParam(1,$name,PDO::PARAM_STR);
+			$stmt->bindParam(2,$email,PDO::PARAM_STR);
+			$stmt->execute();
+			echo "完了";
+			$dbh->commit();
+		} catch (Exception $e) {
+			//例外発生時
+			echo 'Connection failed:'.$e->getMessage();
+			$dbh->rollback();
+			exit();
+		}
